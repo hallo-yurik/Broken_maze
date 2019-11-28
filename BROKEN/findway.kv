@@ -1,0 +1,176 @@
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
+Game:
+
+	Menu:
+		name: "menu"
+	Maze:
+		name: "maze"
+
+
+<Menu>:
+	AnchorLayout:
+		anchor_x : 'left'
+		anchor_y : 'bottom'
+		padding : [20, 0, 0, 20]
+		Button:
+			id: settings
+			text : "Settings"
+			size : (100, 100)
+			size_hint : (None, None)
+			font_size : "10 sp"
+			on_release : app.open_settings()
+
+	AnchorLayout:
+		anchor_x : 'right'
+		anchor_y : 'bottom'
+		padding : [0, 0, 20, 20]
+		Button:
+			text : "X"
+			size : (100, 100)
+			size_hint : (None, None)
+			font_size : "10 sp"
+			on_release : app.stop()
+
+	BoxLayout:
+		orientation : 'vertical'
+		spacing : 15
+		size_hint : .75, .25
+		pos_hint:{"center_x":.5,"center_y":.75}
+		
+		Button:
+			id : start
+			text : "Start"
+			size_hint: 1, 1
+			on_release:
+				root.manager.transition = FadeTransition()
+				root.manager.transition.duration = .5
+				root.check_diff()
+
+
+		Spinner:
+			id : difficulty
+			text : "Chose difficulty"
+			values: ["Easy", "Normal", "Difficult", "Impossible"]
+			size_hint: 1, .45
+			on_text : root.chose_difficulty(difficulty.text)
+			sync_height: True
+
+<Walker>:
+	size_hint: None, None
+	canvas:
+		Color:
+			rgba: 0, 0, 1, 1
+	    Ellipse:
+	        pos: self.pos
+	        size: self.size
+
+<Maze>:
+
+	on_pre_enter: 
+		mazezone.chosen_diff()
+		walker.set_start()
+		walker.chose_first_base()
+	on_leave : 
+		mazezone.clear_widget(), 
+		root.stop_updating()
+
+	BoxLayout:
+		orientation : 'vertical'
+		spacing : 15
+		size_hint : .95, .95
+		pos_hint:{"center_x":.5,"center_y":.5}
+
+		BoxLayout:
+			size_hint : (1, .075)
+			spacing: 5
+			Button:
+				id: mazeback
+				text: "Back"
+				font_size : "10 sp"
+				size_hint : (.3, 1)
+				on_press:
+					root.manager.transition = FadeTransition()
+					root.manager.transition.duration = .5
+					root.open_back()
+
+			Button:
+				text: "Settings"
+				font_size : "10 sp"
+				size_hint : (.3, 1)
+				on_press : app.open_settings()
+
+			Widget:
+
+		SituativeMaze:
+			mazezone: mazezone
+			walker: walker
+			id: mazezone
+
+	Walker:
+		id: walker 
+
+<BackPopup>:
+
+	backpop: backpop
+
+	separator_color: 1, 0, 0, 1
+	size_hint: .5, .25
+	title: "Are you sure?"
+	id: backpop
+	BoxLayout:
+		orientation: "vertical"
+		padding: 10
+		spacing: 5
+
+		Button:
+			id: back
+			text: "Yes"
+			on_release: 
+				root.dismiss()
+				app.root.current = "menu"
+
+<SettingsPopup>:
+	soundbutt : soundbutt
+	musicbutt : musicbutt
+
+	separator_color: 1, 0, 0, 1
+	size_hint: .5, .25
+	title: "Settings"
+	BoxLayout:
+		orientation: "vertical"
+		padding: 10
+		spacing: 5
+
+		Button:
+			id: soundbutt
+			text: root.first_sound()
+			on_release: root.soundonoff()
+
+		Button:
+			id: musicbutt
+			text: root.first_music()
+			on_release: root.musiconoff()
+
+<EndPopup>:
+	size_hint: .75, .375
+	auto_dismiss: False
+	title: "Ready for the next level?"
+	separator_color: 1, 0, 0, 1
+	BoxLayout:
+		orientation: "vertical"
+		padding: 10
+		spacing: 5
+		Button:
+			text: "Next"
+			on_release:
+				root.dismiss()
+				root.obj.clear_widget()
+				root.obj.chosen_diff()
+				root.obj.parent.parent.on_enter()
+
+		Button:
+			text: "Back to menu"
+			on_release:
+				root.dismiss()
+				app.root.current = "menu"
